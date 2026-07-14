@@ -41,3 +41,13 @@ Includes component/unit tests (Vitest + Testing Library) and a dedicated browser
 
 ## Related
 Pairs with [Chess-Server](https://github.com/vipul016/Chess-Server) — see that repo for backend architecture, API/WebSocket protocol details, and full setup instructions.
+## Deployment
+
+The application is configured for seamless deployment to Vercel.
+
+1. **Push to GitHub:** Ensure your `chess-client` repository is pushed to GitHub.
+2. **Import to Vercel:** Create a new project on Vercel and import the repository.
+3. **Environment Variables:** Set the following variables in Vercel:
+   - `VITE_API_URL`: Your backend REST API URL (e.g. `https://chess-server.onrender.com`)
+   - `VITE_WS_URL`: Your backend WebSocket URL (e.g. `wss://chess-server.onrender.com`)
+4. **Deploy:** Vercel will automatically build the React application using `vite build`. Routing is handled out-of-the-box by the included `vercel.json` configuration to prevent 404 errors on direct navigation.
