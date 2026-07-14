@@ -11,9 +11,31 @@ export default function Review() {
   const [analysis, setAnalysis] = useState<any>(null);
   const [moveIndex, setMoveIndex] = useState(-1);
 
+  const [isAnalyzing, setIsAnalyzing] = useState(true);
+
   useEffect(() => {
     api.get(`/games/${id}`).then(res => setGame(res.data)).catch(console.error);
-    api.get(`/games/${id}/analyze`).then(res => setAnalysis(res.data)).catch(console.error);
+
+    let timeoutId: NodeJS.Timeout;
+    const fetchAnalysis = () => {
+      api.get(`/games/${id}/analyze`)
+        .then(res => {
+          if (res.data.status === 'pending') {
+            timeoutId = setTimeout(fetchAnalysis, 3000);
+          } else {
+            setAnalysis(res.data);
+            setIsAnalyzing(false);
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          setIsAnalyzing(false);
+        });
+    };
+    
+    fetchAnalysis();
+
+    return () => clearTimeout(timeoutId);
   }, [id]);
 
   if (!game) return <div className="min-h-screen flex items-center justify-center">Loading game...</div>;
@@ -74,9 +96,16 @@ export default function Review() {
             </div>
             
             {!analysis ? (
-               <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+               <div className="flex flex-col items-center justify-center py-12 text-gray-400 text-center">
                   <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mb-4"/>
-                  Analyzing engine lines...
+                  {isAnalyzing ? (
+                    <>
+                      <p className="font-bold text-white mb-2">Analyzing engine lines...</p>
+                      <p className="text-xs">This runs in the background and may take a minute for long games.</p>
+                    </>
+                  ) : (
+                    <p className="text-red-400">Analysis failed or unavailable.</p>
+                  )}
                </div>
             ) : (
                <div className="space-y-6">

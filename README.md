@@ -1,32 +1,43 @@
-# React + TypeScript + Vite
+# Chess-Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React frontend for the multiplayer chess platform, built with Vite, TypeScript, and Tailwind CSS. Provides the full player experience — matchmaking, live gameplay, spectating, and post-game analysis — on top of the [Chess-Server](https://github.com/vipul016/Chess-Server) backend.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Live drag-and-drop chessboard (`react-chessboard`) synced to server-authoritative state
+- Real-time matchmaking, private room creation/joining via shareable codes, and bot games (Stockfish, adjustable difficulty)
+- Live game clocks, resign/draw controls, in-game chat, and spectator view
+- Automatic reconnection handling on disconnect/refresh, restoring the player to their in-progress game
+- Post-game move-by-move analysis view, alongside rating and match history
+- State management via Zustand; API/auth handled through a typed API client
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+React 19, TypeScript, Vite, Tailwind CSS, Zustand, `react-chessboard`, `chess.js` (client-side rendering only — the server remains authoritative), Vitest + Testing Library + Puppeteer for testing
 
-## Expanding the Oxlint configuration
+## Getting Started
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+```bash
+git clone https://github.com/vipul016/Chess-Client.git
+cd Chess-Client
+npm install
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+# Configure environment
+cp .env.example .env
+# Set the backend API/WebSocket URL in .env
+
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Requires [Chess-Server](https://github.com/vipul016/Chess-Server) running and reachable.
+
+## Testing
+
+```bash
+npm test
+```
+
+Includes component/unit tests (Vitest + Testing Library) and a dedicated browser-level test for chessboard drag-and-drop interaction (Puppeteer).
+
+## Related
+Pairs with [Chess-Server](https://github.com/vipul016/Chess-Server) — see that repo for backend architecture, API/WebSocket protocol details, and full setup instructions.
