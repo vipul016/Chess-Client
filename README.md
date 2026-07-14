@@ -1,5 +1,7 @@
 # Chess-Client
 
+**Live Demo:** [https://chess-client-6f79gpep5-vipul016s-projects.vercel.app](https://chess-client-6f79gpep5-vipul016s-projects.vercel.app)
+
 React frontend for the multiplayer chess platform, built with Vite, TypeScript, and Tailwind CSS. Provides the full player experience — matchmaking, live gameplay, spectating, and post-game analysis — on top of the [Chess-Server](https://github.com/vipul016/Chess-Server) backend.
 
 ## Features
