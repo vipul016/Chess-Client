@@ -6,6 +6,8 @@ import Lobby from './pages/Lobby';
 import Game from './pages/Game';
 import History from './pages/History';
 import Review from './pages/Review';
+import Profile from './pages/Profile';
+import Settings from './pages/Settings';
 import { useEffect } from 'react';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -35,6 +37,8 @@ function App() {
         <Route path="/spectate/:roomId" element={<ProtectedRoute><Game spectate /></ProtectedRoute>} />
         <Route path="/games" element={<ProtectedRoute><History /></ProtectedRoute>} />
         <Route path="/games/:id" element={<ProtectedRoute><Review /></ProtectedRoute>} />
+        <Route path="/profile/:username" element={<Profile />} />
+        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to={token ? "/lobby" : "/login"} />} />
       </Routes>
     </BrowserRouter>

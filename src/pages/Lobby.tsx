@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useGameStore } from '../store';
-import { LogOut, Play, Swords, History as HistoryIcon, Search, Users, Cpu } from 'lucide-react';
+import { LogOut, Play, Swords, History as HistoryIcon, Search, Users, Cpu, Settings, User } from 'lucide-react';
 
 export default function Lobby() {
   const { user, setUser, logout, matchmaking, findMatch, cancelFindMatch, sendMessage, roomId, isConnected, createdRoomCode } = useGameStore();
@@ -43,8 +43,10 @@ export default function Lobby() {
             <span className="text-yellow-400 font-bold">{user.rating} Elo</span>
           </p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-3">
+          <button onClick={() => navigate(`/profile/${user.username}`)} className="btn-secondary flex items-center gap-2"><User size={18}/> Profile</button>
           <button onClick={() => navigate('/games')} className="btn-secondary flex items-center gap-2"><HistoryIcon size={18}/> History</button>
+          <button onClick={() => navigate('/settings')} className="btn-secondary flex items-center gap-2"><Settings size={18}/> Settings</button>
           <button onClick={logout} className="btn-secondary border-red-900/50 hover:bg-red-900/20 text-red-400 flex items-center gap-2"><LogOut size={18}/> Logout</button>
         </div>
       </header>
