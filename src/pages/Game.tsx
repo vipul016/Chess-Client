@@ -5,6 +5,79 @@ import { Chess } from 'chess.js';
 import { useGameStore } from '../store';
 import { MessageSquare, Flag, Handshake } from 'lucide-react';
 
+const MemoizedBoard = React.memo(({ fen, moveFrom, color, turn, myColor, spectate, gameOverResult, chess, sendMessage, setMoveFrom }: any) => {
+  const onDrop = (sourceSquare: any, targetSquare?: string, piece?: string) => {
+    let src = typeof sourceSquare === 'string' ? sourceSquare : sourceSquare.sourceSquare;
+    let tgt = typeof targetSquare === 'string' ? targetSquare : sourceSquare.targetSquare;
+    let pObj = typeof piece === 'string' ? piece : sourceSquare.piece;
+    let p = typeof pObj === 'string' ? pObj : (pObj?.pieceType || '');
+
+    if (spectate || gameOverResult || (turn !== color)) {
+      return false;
+    }
+    
+    try {
+      const isPromotion = (p && p[1]?.toLowerCase() === 'p') && (tgt[1] === '8' || tgt[1] === '1');
+      const movePayload = {
+        from: src,
+        to: tgt,
+        ...(isPromotion && { promotion: 'q' })
+      };
+      
+      const move = chess.move(movePayload);
+
+      if (move) {
+        useGameStore.setState({ fen: chess.fen(), turn: chess.turn() });
+        sendMessage({ type: 'move', from: src, to: tgt, promotion: isPromotion ? 'q' : undefined });
+        return true;
+      }
+    } catch (e: any) {
+      console.error("Move error:", e);
+    }
+    return false;
+  };
+
+  const onSquareClick = ({ square }: { piece?: any; square: string }) => {
+    if (spectate || gameOverResult || (turn !== color)) return;
+
+    if (!moveFrom) {
+      const piece = chess.get(square as any);
+      if (piece && piece.color === color) {
+        setMoveFrom(square);
+      }
+      return;
+    }
+
+    const pieceObj = chess.get(moveFrom as any);
+    const pieceString = pieceObj ? pieceObj.color + pieceObj.type.toUpperCase() : '';
+    const success = onDrop(moveFrom, square, pieceString);
+    if (!success) {
+      const piece = chess.get(square as any);
+      if (piece && piece.color === color) {
+        setMoveFrom(square);
+      } else {
+        setMoveFrom(null);
+      }
+    } else {
+      setMoveFrom(null);
+    }
+  };
+
+  const options = React.useMemo(() => ({
+    position: fen,
+    onPieceDrop: onDrop,
+    onSquareClick: onSquareClick,
+    squareStyles: moveFrom ? { [moveFrom]: { backgroundColor: 'rgba(255, 255, 0, 0.4)' } } : {},
+    canDragPiece: ({ piece }: any) => (piece.pieceType ? piece.pieceType[0] === color : false) && turn === color,
+    boardOrientation: myColor === 'w' ? 'white' : 'black',
+    darkSquareStyle: { backgroundColor: '#334155' },
+    lightSquareStyle: { backgroundColor: '#94a3b8' },
+    animationDurationInMs: 200
+  }), [fen, moveFrom, color, turn, myColor, spectate, gameOverResult, chess]);
+
+  return <Chessboard options={options} />;
+});
+
 export default function Game({ spectate = false }: { spectate?: boolean }) {
   const { 
     isConnected, roomId, color, fen, turn, clock, gameOverResult,
@@ -43,74 +116,6 @@ export default function Game({ spectate = false }: { spectate?: boolean }) {
   useEffect(() => {
     try { chess.load(fen); } catch(e){}
   }, [fen, chess]);
-
-  const onDrop = (sourceSquare: any, targetSquare?: string, piece?: string) => {
-    // Handle both new object signature and old 3-argument signature for react-chessboard
-    let src = typeof sourceSquare === 'string' ? sourceSquare : sourceSquare.sourceSquare;
-    let tgt = typeof targetSquare === 'string' ? targetSquare : sourceSquare.targetSquare;
-    let pObj = typeof piece === 'string' ? piece : sourceSquare.piece;
-    let p = typeof pObj === 'string' ? pObj : (pObj?.pieceType || '');
-
-    if (spectate || gameOverResult || (turn !== color)) {
-      alert(`Move rejected! spectate=${spectate}, gameOver=${!!gameOverResult}, turn=${turn}, your_color=${color}`);
-      return false;
-    }
-    
-    // Check local validation
-    try {
-      console.log(`Attempting move: from ${src} to ${tgt} with piece ${p}`);
-      const isPromotion = (p && p[1]?.toLowerCase() === 'p') && (tgt[1] === '8' || tgt[1] === '1');
-      const movePayload = {
-        from: src,
-        to: tgt,
-        ...(isPromotion && { promotion: 'q' }) // Default to queen for now
-      };
-      
-      const move = chess.move(movePayload);
-
-      if (move) {
-        useGameStore.setState({ fen: chess.fen(), turn: chess.turn() });
-        sendMessage({ type: 'move', from: src, to: tgt, promotion: isPromotion ? 'q' : undefined });
-        return true;
-      } else {
-        alert(`chess.move rejected ${src} to ${tgt}`);
-        return false;
-      }
-    } catch (e: any) {
-      console.error("Move error:", e);
-      alert("Move error: " + e.message);
-    }
-    return false;
-  };
-
-  const onSquareClick = ({ square }: { piece?: any; square: string }) => {
-    if (spectate || gameOverResult || (turn !== color)) return;
-
-    if (!moveFrom) {
-      // First click: select piece
-      const piece = chess.get(square as any);
-      if (piece && piece.color === color) {
-        setMoveFrom(square);
-      }
-      return;
-    }
-
-    // Second click: attempt move
-    const pieceObj = chess.get(moveFrom as any);
-    const pieceString = pieceObj ? pieceObj.color + pieceObj.type.toUpperCase() : '';
-    const success = onDrop(moveFrom, square, pieceString);
-    if (!success) {
-      // If move failed, maybe they clicked another of their own pieces
-      const piece = chess.get(square as any);
-      if (piece && piece.color === color) {
-        setMoveFrom(square);
-      } else {
-        setMoveFrom(null);
-      }
-    } else {
-      setMoveFrom(null);
-    }
-  };
 
   const handleChat = (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,21 +170,18 @@ export default function Game({ spectate = false }: { spectate?: boolean }) {
           </div>
 
           <div className="w-full rounded-xl overflow-hidden shadow-2xl border-4 border-dark-border bg-gray-800">
-            <Chessboard 
-              options={{
-                position: fen,
-                onPieceDrop: onDrop,
-                onSquareClick: onSquareClick,
-                squareStyles: {
-                  ...(moveFrom ? { [moveFrom]: { backgroundColor: 'rgba(255, 255, 0, 0.4)' } } : {})
-                },
-                canDragPiece: ({ piece }) => (piece.pieceType ? piece.pieceType[0] === color : false) && turn === color,
-                boardOrientation: myColor === 'w' ? 'white' : 'black',
-                darkSquareStyle: { backgroundColor: '#334155' },
-                lightSquareStyle: { backgroundColor: '#94a3b8' },
-                animationDurationInMs: 200
-              }}
-            />
+             <MemoizedBoard 
+               fen={fen} 
+               moveFrom={moveFrom} 
+               color={color} 
+               turn={turn} 
+               myColor={myColor} 
+               spectate={spectate} 
+               gameOverResult={gameOverResult} 
+               chess={chess} 
+               sendMessage={sendMessage} 
+               setMoveFrom={setMoveFrom} 
+             />
           </div>
 
           {/* Player Info */}

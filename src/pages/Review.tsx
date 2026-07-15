@@ -56,6 +56,14 @@ export default function Review() {
     }
   };
 
+  const boardOptions = React.useMemo(() => ({
+    position: currentFen,
+    boardOrientation: 'white' as 'white' | 'black',
+    darkSquareStyle: { backgroundColor: '#334155' },
+    lightSquareStyle: { backgroundColor: '#94a3b8' },
+    animationDurationInMs: 200
+  }), [currentFen]);
+
   return (
     <div className="min-h-screen p-4 md:p-8 flex flex-col items-center">
       <header className="w-full max-w-6xl flex items-center gap-4 mb-6">
@@ -70,15 +78,7 @@ export default function Review() {
         
         <div className="w-full max-w-[480px] flex flex-col gap-4">
           <div className="w-full max-w-2xl bg-gray-800 rounded-xl overflow-hidden border-4 border-dark-border shadow-2xl">
-            <Chessboard 
-              options={{
-                position: currentFen,
-                boardOrientation: 'white',
-                darkSquareStyle: { backgroundColor: '#334155' },
-                lightSquareStyle: { backgroundColor: '#94a3b8' },
-                animationDurationInMs: 200
-              }}
-            />
+            <Chessboard options={boardOptions} />
           </div>
           
           <div className="glass-panel p-4 flex justify-between items-center">
